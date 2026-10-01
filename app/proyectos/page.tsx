@@ -21,6 +21,12 @@ type Proyecto = {
   clients: { name: string } | null
 }
 
+type Nota = {
+  id: string
+  content: string
+  created_at: string
+}
+
 const ESTADOS = ['pendiente', 'en progreso', 'entregado']
 
 export default function ProyectosPage() {
@@ -37,6 +43,13 @@ export default function ProyectosPage() {
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
 
+  // Notas
+  const [notasProyectoId, setNotasProyectoId] = useState<string | null>(null)
+  const [notasProyectoNombre, setNotasProyectoNombre] = useState('')
+  const [notas, setNotas] = useState<Nota[]>([])
+  const [nuevaNota, setNuevaNota] = useState('')
+  const [cargandoNotas, setCargandoNotas] = useState(false)
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) {
@@ -52,11 +65,19 @@ export default function ProyectosPage() {
     const [proyectosRes, clientesRes] = await Promise.all([
       supabase
         .from('projects')
-        .select('*, clients(name)')
+        .select('*')
         .order('created_at', { ascending: false }),
       supabase.from('clients').select('id, name').order('name'),
     ])
-    setProyectos((proyectosRes.data as Proyecto[]) ?? [])
+
+    const clientesMap = new Map((clientesRes.data ?? []).map((c) => [c.id, c.name]))
+
+    const proyectosConCliente = (proyectosRes.data ?? []).map((p) => ({
+      ...p,
+      clients: { name: clientesMap.get(p.client_id) ?? '—' },
+    }))
+
+    setProyectos(proyectosConCliente as Proyecto[])
     setClientes(clientesRes.data ?? [])
   }
 
@@ -103,7 +124,7 @@ export default function ProyectosPage() {
   }
 
   async function borrarProyecto(id: string) {
-    if (!confirm('¿Borrar este proyecto?')) return
+    if (!confirm('¿Borrar este proyecto? También se borrarán sus notas.')) return
 
     const { error } = await supabase.from('projects').delete().eq('id', id)
     if (error) {
@@ -116,6 +137,69 @@ export default function ProyectosPage() {
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  async function abrirNotas(proyecto: Proyecto) {
+    setNotasProyectoId(proyecto.id)
+    setNotasProyectoNombre(proyecto.name)
+    setNuevaNota('')
+    setCargandoNotas(true)
+    const { data } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('project_id', proyecto.id)
+      .order('created_at', { ascending: false })
+    setNotas(data ?? [])
+    setCargandoNotas(false)
+  }
+
+  function cerrarNotas() {
+    setNotasProyectoId(null)
+    setNotasProyectoNombre('')
+    setNotas([])
+    setNuevaNota('')
+  }
+
+  async function agregarNota(e: React.FormEvent) {
+    e.preventDefault()
+    if (!notasProyectoId || !nuevaNota.trim()) return
+
+    const { error } = await supabase.from('notes').insert({
+      content: nuevaNota.trim(),
+      project_id: notasProyectoId,
+    })
+
+    if (error) {
+      alert('Error: ' + error.message)
+      return
+    }
+
+    setNuevaNota('')
+    const { data } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('project_id', notasProyectoId)
+      .order('created_at', { ascending: false })
+    setNotas(data ?? [])
+  }
+
+  async function borrarNota(id: string) {
+    if (!confirm('¿Borrar esta nota?')) return
+
+    const { error } = await supabase.from('notes').delete().eq('id', id)
+    if (error) {
+      alert('Error: ' + error.message)
+      return
+    }
+
+    if (notasProyectoId) {
+      const { data } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('project_id', notasProyectoId)
+        .order('created_at', { ascending: false })
+      setNotas(data ?? [])
+    }
   }
 
   const proyectosFiltrados = proyectos.filter((p) => {
@@ -261,6 +345,12 @@ export default function ProyectosPage() {
                   Editar
                 </button>
                 <button
+                  onClick={() => abrirNotas(p)}
+                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', cursor: 'pointer' }}
+                >
+                  Notas
+                </button>
+                <button
                   onClick={() => borrarProyecto(p.id)}
                   style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', cursor: 'pointer', color: 'red' }}
                 >
@@ -270,6 +360,98 @@ export default function ProyectosPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {notasProyectoId && (
+        <div
+          onClick={cerrarNotas}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            zIndex: 50,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#fff',
+              color: '#111',
+              borderRadius: 8,
+              padding: '1.5rem',
+              maxWidth: 500,
+              width: '100%',
+              maxHeight: '80vh',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0 }}>Notas — {notasProyectoNombre}</h3>
+              <button
+                onClick={cerrarNotas}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1 }}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={agregarNota} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+              <input
+                placeholder="Nueva nota..."
+                value={nuevaNota}
+                onChange={(e) => setNuevaNota(e.target.value)}
+                style={{ flex: 1, padding: '0.5rem', border: '1px solid #ccc', borderRadius: 6 }}
+              />
+              <button
+                type="submit"
+                style={{ padding: '0.5rem 1rem', background: '#000', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+              >
+                Agregar
+              </button>
+            </form>
+
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              {cargandoNotas ? (
+                <p>Cargando...</p>
+              ) : notas.length === 0 ? (
+                <p style={{ color: '#666' }}>No hay notas todavía.</p>
+              ) : (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {notas.map((n) => (
+                    <li
+                      key={n.id}
+                      style={{
+                        padding: '0.6rem',
+                        border: '1px solid #eee',
+                        borderRadius: 6,
+                        marginBottom: '0.5rem',
+                        fontSize: '0.9rem',
+                      }}
+                    >
+                      <div>{n.content}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#999' }}>
+                          {new Date(n.created_at).toLocaleString('es-ES')}
+                        </span>
+                        <button
+                          onClick={() => borrarNota(n.id)}
+                          style={{ fontSize: '0.75rem', color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                          Borrar
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
