@@ -1,69 +1,121 @@
-import Image from "next/image";
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import type { User } from '@supabase/supabase-js'
 
 export default function Home() {
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+  const [totalClientes, setTotalClientes] = useState(0)
+  const [totalProyectos, setTotalProyectos] = useState(0)
+  const [porEstado, setPorEstado] = useState({ pendiente: 0, 'en progreso': 0, entregado: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        router.push('/login')
+      } else {
+        setUser(data.user)
+        cargarMetricas()
+      }
+    })
+  }, [router])
+
+  async function cargarMetricas() {
+    const [clientesRes, proyectosRes] = await Promise.all([
+      supabase.from('clients').select('id', { count: 'exact', head: true }),
+      supabase.from('projects').select('status'),
+    ])
+
+    setTotalClientes(clientesRes.count ?? 0)
+
+    const proyectos = proyectosRes.data ?? []
+    setTotalProyectos(proyectos.length)
+
+    const conteo = { pendiente: 0, 'en progreso': 0, entregado: 0 }
+    proyectos.forEach((p: { status: string }) => {
+      if (p.status in conteo) {
+        conteo[p.status as keyof typeof conteo]++
+      }
+    })
+    setPorEstado(conteo)
+    setLoading(false)
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  if (!user || loading) {
+    return <p style={{ padding: '2rem', fontFamily: 'system-ui' }}>Cargando...</p>
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: 800 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h1 style={{ margin: 0 }}>Egg Loading Manager</h1>
+        <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span>{user.email}</span>
+          <button
+            onClick={handleLogout}
+            style={{
+              fontSize: '0.85rem',
+              padding: '0.4rem 0.8rem',
+              cursor: 'pointer',
+              background: '#dc2626',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+            }}
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Salir
+          </button>
         </div>
-      </main>
+      </div>
+
+      <nav style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+        <Link href="/clientes" style={{ padding: '0.6rem 1rem', background: '#000', color: '#fff', borderRadius: 6, textDecoration: 'none' }}>
+          Clientes
+        </Link>
+        <Link href="/proyectos" style={{ padding: '0.6rem 1rem', background: '#000', color: '#fff', borderRadius: 6, textDecoration: 'none' }}>
+          Proyectos
+        </Link>
+      </nav>
+
+      <h2>Métricas</h2>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+        <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: 8 }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>{totalClientes}</div>
+          <div style={{ color: '#666' }}>Clientes</div>
+        </div>
+        <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: 8 }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>{totalProyectos}</div>
+          <div style={{ color: '#666' }}>Proyectos</div>
+        </div>
+      </div>
+
+      <h2 style={{ marginTop: '2rem' }}>Proyectos por estado</h2>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+        <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: 8, textAlign: 'center' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{porEstado.pendiente}</div>
+          <div style={{ color: '#666', fontSize: '0.9rem' }}>Pendiente</div>
+        </div>
+        <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: 8, textAlign: 'center' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{porEstado['en progreso']}</div>
+          <div style={{ color: '#666', fontSize: '0.9rem' }}>En progreso</div>
+        </div>
+        <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: 8, textAlign: 'center' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{porEstado.entregado}</div>
+          <div style={{ color: '#666', fontSize: '0.9rem' }}>Entregado</div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
