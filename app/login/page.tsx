@@ -27,50 +27,74 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/clientes')
+    router.push('/')
     router.refresh()
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '4rem auto', padding: '2rem', fontFamily: 'system-ui' }}>
-      <h1>{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
+      <div className="w-full max-w-md">
+        <div className="bg-white border border-zinc-200 rounded-xl p-8 shadow-sm">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 mb-3">
+              <span className="text-2xl">🥚</span>
+              <span className="font-bold text-lg">Egg Loading</span>
+            </div>
+            <h1 className="text-2xl font-bold">
+              {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+            </h1>
+          </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: '0.75rem', border: '1px solid #ccc', borderRadius: 6 }}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña (mínimo 6 caracteres)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-          style={{ padding: '0.75rem', border: '1px solid #ccc', borderRadius: 6 }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: '0.75rem', background: '#000', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
-        >
-          {loading ? 'Cargando...' : mode === 'login' ? 'Entrar' : 'Registrarme'}
-        </button>
-      </form>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">Email</label>
+              <input
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+              />
+            </div>
 
-      {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">Contraseña</label>
+              <input
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+              />
+            </div>
 
-      <button
-        type="button"
-        onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-        style={{ marginTop: '1rem', background: 'none', border: 'none', color: '#0066cc', cursor: 'pointer', textDecoration: 'underline' }}
-      >
-        {mode === 'login' ? '¿No tenés cuenta? Registrate' : '¿Ya tenés cuenta? Iniciá sesión'}
-      </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
+            >
+              {loading ? 'Cargando...' : mode === 'login' ? 'Entrar' : 'Registrarme'}
+            </button>
+          </form>
+
+          {error && (
+            <div className="mt-4 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            className="w-full mt-6 text-sm text-zinc-500 hover:text-zinc-900 transition"
+          >
+            {mode === 'login' ? '¿No tenés cuenta? Registrate' : '¿Ya tenés cuenta? Iniciá sesión'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

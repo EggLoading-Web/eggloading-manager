@@ -27,9 +27,8 @@ export default function ClientesPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push('/login')
-      } else {
+      if (!data.user) router.push('/login')
+      else {
         setUser(data.user)
         cargarClientes()
       }
@@ -62,11 +61,7 @@ export default function ClientesPage() {
     e.preventDefault()
     setLoading(true)
 
-    const datos = {
-      name,
-      email: email || null,
-      phone: phone || null,
-    }
+    const datos = { name, email: email || null, phone: phone || null }
 
     const { error } = editandoId
       ? await supabase.from('clients').update(datos).eq('id', editandoId)
@@ -85,7 +80,6 @@ export default function ClientesPage() {
 
   async function borrarCliente(id: string) {
     if (!confirm('¿Borrar este cliente?')) return
-
     const { error } = await supabase.from('clients').delete().eq('id', id)
     if (error) {
       alert('Error: ' + error.message)
@@ -109,115 +103,122 @@ export default function ClientesPage() {
     )
   })
 
-  if (!user) {
-    return <p style={{ padding: '2rem', fontFamily: 'system-ui' }}>Cargando...</p>
-  }
+  if (!user) return <p className="p-8 text-zinc-500">Cargando...</p>
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: 600 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link href="/" style={{ color: '#0066cc', textDecoration: 'none', fontSize: '0.9rem' }}>← Dashboard</Link>
-          <h1 style={{ margin: 0 }}>Clientes</h1>
-        </div>
-        <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span>{user.email}</span>
-          <button
-            onClick={handleLogout}
-            style={{
-              fontSize: '0.85rem',
-              padding: '0.4rem 0.8rem',
-              cursor: 'pointer',
-              background: '#dc2626',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-            }}
-          >
-            Salir
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-stone-50">
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <header className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-900 transition">
+              ← Dashboard
+            </Link>
+            <h1 className="text-2xl font-bold">Clientes</h1>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-zinc-500">{user.email}</span>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
+            >
+              Salir
+            </button>
+          </div>
+        </header>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-        <input
-          placeholder="Nombre *"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={{ padding: '0.6rem', border: '1px solid #ccc', borderRadius: 6 }}
-        />
-        <input
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ padding: '0.6rem', border: '1px solid #ccc', borderRadius: 6 }}
-        />
-        <input
-          placeholder="Teléfono"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          style={{ padding: '0.6rem', border: '1px solid #ccc', borderRadius: 6 }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: '0.6rem', background: '#000', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
-        >
-          {loading ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar cliente'}
-        </button>
-        {editandoId && (
-          <button
-            type="button"
-            onClick={limpiarForm}
-            style={{ padding: '0.6rem', background: '#eee', border: 'none', borderRadius: 6, cursor: 'pointer' }}
-          >
-            Cancelar edición
-          </button>
+        <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">
+            {editandoId ? 'Editar cliente' : 'Nuevo cliente'}
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <input
+              placeholder="Nombre *"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            />
+            <input
+              placeholder="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            />
+            <input
+              placeholder="Teléfono"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            />
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition"
+              >
+                {loading ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar cliente'}
+              </button>
+              {editandoId && (
+                <button
+                  type="button"
+                  onClick={limpiarForm}
+                  className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg font-medium transition"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+
+        <div className="flex justify-between items-center gap-4 mb-4">
+          <h2 className="text-lg font-semibold">
+            Lista <span className="text-zinc-500 font-normal">({clientesFiltrados.length}{busqueda && ` de ${clientes.length}`})</span>
+          </h2>
+          <input
+            type="text"
+            placeholder="Buscar..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-64 px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+          />
+        </div>
+
+        {clientesFiltrados.length === 0 ? (
+          <p className="text-zinc-500 py-8 text-center">
+            {busqueda ? 'No hay clientes que coincidan.' : 'No hay clientes todavía.'}
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {clientesFiltrados.map((c) => (
+              <li key={c.id} className="bg-white border border-zinc-200 rounded-xl p-4 hover:border-zinc-300 hover:shadow-sm transition">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold">{c.name}</h3>
+                    {c.email && <p className="text-sm text-zinc-500 mt-0.5">{c.email}</p>}
+                    {c.phone && <p className="text-sm text-zinc-500">{c.phone}</p>}
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => empezarEdicion(c)}
+                      className="px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md text-xs font-medium transition"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => borrarCliente(c.id)}
+                      className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-md text-xs font-medium transition"
+                    >
+                      Borrar
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
-      </form>
-
-      <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-        <h2 style={{ margin: 0 }}>Lista ({clientesFiltrados.length}{busqueda && ` de ${clientes.length}`})</h2>
-        <input
-          type="text"
-          placeholder="Buscar por nombre, email o teléfono"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          style={{ padding: '0.5rem', border: '1px solid #ccc', borderRadius: 6, fontSize: '0.85rem', flex: 1 }}
-        />
       </div>
-
-      {clientesFiltrados.length === 0 ? (
-        <p style={{ marginTop: '1rem' }}>
-          {busqueda ? 'No hay clientes que coincidan con la búsqueda.' : 'No hay clientes todavía.'}
-        </p>
-      ) : (
-        <ul style={{ marginTop: '0.5rem', listStyle: 'none', padding: 0 }}>
-          {clientesFiltrados.map((c) => (
-            <li key={c.id} style={{ padding: '0.75rem', border: '1px solid #eee', borderRadius: 6, marginBottom: '0.5rem' }}>
-              <strong>{c.name}</strong>
-              {c.email && <div style={{ fontSize: '0.85rem', color: '#666' }}>{c.email}</div>}
-              {c.phone && <div style={{ fontSize: '0.85rem', color: '#666' }}>{c.phone}</div>}
-              <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={() => empezarEdicion(c)}
-                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', cursor: 'pointer' }}
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => borrarCliente(c.id)}
-                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', cursor: 'pointer', color: 'red' }}
-                >
-                  Borrar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   )
 }

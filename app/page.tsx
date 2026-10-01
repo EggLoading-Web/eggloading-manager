@@ -16,9 +16,8 @@ export default function Home() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push('/login')
-      } else {
+      if (!data.user) router.push('/login')
+      else {
         setUser(data.user)
         cargarMetricas()
       }
@@ -32,15 +31,12 @@ export default function Home() {
     ])
 
     setTotalClientes(clientesRes.count ?? 0)
-
     const proyectos = proyectosRes.data ?? []
     setTotalProyectos(proyectos.length)
 
     const conteo = { pendiente: 0, 'en progreso': 0, entregado: 0 }
     proyectos.forEach((p: { status: string }) => {
-      if (p.status in conteo) {
-        conteo[p.status as keyof typeof conteo]++
-      }
+      if (p.status in conteo) conteo[p.status as keyof typeof conteo]++
     })
     setPorEstado(conteo)
     setLoading(false)
@@ -51,69 +47,68 @@ export default function Home() {
     router.push('/login')
   }
 
-  if (!user || loading) {
-    return <p style={{ padding: '2rem', fontFamily: 'system-ui' }}>Cargando...</p>
-  }
+  if (!user || loading) return <p className="p-8 text-zinc-500">Cargando...</p>
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: 800 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ margin: 0 }}>Egg Loading Manager</h1>
-        <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span>{user.email}</span>
-          <button
-            onClick={handleLogout}
-            style={{
-              fontSize: '0.85rem',
-              padding: '0.4rem 0.8rem',
-              cursor: 'pointer',
-              background: '#dc2626',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-            }}
+    <div className="min-h-screen bg-stone-50">
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <header className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🥚</span>
+            <h1 className="text-2xl font-bold">Egg Loading Manager</h1>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-zinc-500">{user.email}</span>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
+            >
+              Salir
+            </button>
+          </div>
+        </header>
+
+        <nav className="flex gap-3 mb-8">
+          <Link
+            href="/clientes"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
           >
-            Salir
-          </button>
-        </div>
-      </div>
+            Clientes
+          </Link>
+          <Link
+            href="/proyectos"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
+          >
+            Proyectos
+          </Link>
+        </nav>
 
-      <nav style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-        <Link href="/clientes" style={{ padding: '0.6rem 1rem', background: '#000', color: '#fff', borderRadius: 6, textDecoration: 'none' }}>
-          Clientes
-        </Link>
-        <Link href="/proyectos" style={{ padding: '0.6rem 1rem', background: '#000', color: '#fff', borderRadius: 6, textDecoration: 'none' }}>
-          Proyectos
-        </Link>
-      </nav>
-
-      <h2>Métricas</h2>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginTop: '1rem' }}>
-        <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: 8 }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>{totalClientes}</div>
-          <div style={{ color: '#666' }}>Clientes</div>
+        <h2 className="text-lg font-semibold mb-4">Métricas</h2>
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
+            <div className="text-4xl font-bold mb-1">{totalClientes}</div>
+            <div className="text-sm text-zinc-500">Clientes</div>
+          </div>
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
+            <div className="text-4xl font-bold mb-1">{totalProyectos}</div>
+            <div className="text-sm text-zinc-500">Proyectos</div>
+          </div>
         </div>
-        <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: 8 }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>{totalProyectos}</div>
-          <div style={{ color: '#666' }}>Proyectos</div>
-        </div>
-      </div>
 
-      <h2 style={{ marginTop: '2rem' }}>Proyectos por estado</h2>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1rem' }}>
-        <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: 8, textAlign: 'center' }}>
-          <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{porEstado.pendiente}</div>
-          <div style={{ color: '#666', fontSize: '0.9rem' }}>Pendiente</div>
-        </div>
-        <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: 8, textAlign: 'center' }}>
-          <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{porEstado['en progreso']}</div>
-          <div style={{ color: '#666', fontSize: '0.9rem' }}>En progreso</div>
-        </div>
-        <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: 8, textAlign: 'center' }}>
-          <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{porEstado.entregado}</div>
-          <div style={{ color: '#666', fontSize: '0.9rem' }}>Entregado</div>
+        <h2 className="text-lg font-semibold mb-4">Proyectos por estado</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white border border-amber-200 rounded-xl p-5 text-center shadow-sm">
+            <div className="text-3xl font-bold text-amber-600 mb-1">{porEstado.pendiente}</div>
+            <div className="text-xs text-zinc-500 uppercase tracking-wider">Pendiente</div>
+          </div>
+          <div className="bg-white border border-blue-200 rounded-xl p-5 text-center shadow-sm">
+            <div className="text-3xl font-bold text-blue-600 mb-1">{porEstado['en progreso']}</div>
+            <div className="text-xs text-zinc-500 uppercase tracking-wider">En progreso</div>
+          </div>
+          <div className="bg-white border border-green-200 rounded-xl p-5 text-center shadow-sm">
+            <div className="text-3xl font-bold text-green-600 mb-1">{porEstado.entregado}</div>
+            <div className="text-xs text-zinc-500 uppercase tracking-wider">Entregado</div>
+          </div>
         </div>
       </div>
     </div>

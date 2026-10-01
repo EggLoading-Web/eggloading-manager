@@ -6,10 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
-type Cliente = {
-  id: string
-  name: string
-}
+type Cliente = { id: string; name: string }
 
 type Proyecto = {
   id: string
@@ -29,6 +26,12 @@ type Nota = {
 
 const ESTADOS = ['pendiente', 'en progreso', 'entregado']
 
+const statusColor: Record<string, string> = {
+  pendiente: 'bg-amber-50 text-amber-700 border-amber-200',
+  'en progreso': 'bg-blue-50 text-blue-700 border-blue-200',
+  entregado: 'bg-green-50 text-green-700 border-green-200',
+}
+
 export default function ProyectosPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
@@ -43,7 +46,6 @@ export default function ProyectosPage() {
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
 
-  // Notas
   const [notasProyectoId, setNotasProyectoId] = useState<string | null>(null)
   const [notasProyectoNombre, setNotasProyectoNombre] = useState('')
   const [notas, setNotas] = useState<Nota[]>([])
@@ -52,9 +54,8 @@ export default function ProyectosPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push('/login')
-      } else {
+      if (!data.user) router.push('/login')
+      else {
         setUser(data.user)
         cargarTodo()
       }
@@ -63,15 +64,11 @@ export default function ProyectosPage() {
 
   async function cargarTodo() {
     const [proyectosRes, clientesRes] = await Promise.all([
-      supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false }),
+      supabase.from('projects').select('*').order('created_at', { ascending: false }),
       supabase.from('clients').select('id, name').order('name'),
     ])
 
     const clientesMap = new Map((clientesRes.data ?? []).map((c) => [c.id, c.name]))
-
     const proyectosConCliente = (proyectosRes.data ?? []).map((p) => ({
       ...p,
       clients: { name: clientesMap.get(p.client_id) ?? '—' },
@@ -101,12 +98,7 @@ export default function ProyectosPage() {
     e.preventDefault()
     setLoading(true)
 
-    const datos = {
-      name,
-      stack: stack || null,
-      status,
-      client_id: clientId,
-    }
+    const datos = { name, stack: stack || null, status, client_id: clientId }
 
     const { error } = editandoId
       ? await supabase.from('projects').update(datos).eq('id', editandoId)
@@ -125,7 +117,6 @@ export default function ProyectosPage() {
 
   async function borrarProyecto(id: string) {
     if (!confirm('¿Borrar este proyecto? También se borrarán sus notas.')) return
-
     const { error } = await supabase.from('projects').delete().eq('id', id)
     if (error) {
       alert('Error: ' + error.message)
@@ -185,13 +176,11 @@ export default function ProyectosPage() {
 
   async function borrarNota(id: string) {
     if (!confirm('¿Borrar esta nota?')) return
-
     const { error } = await supabase.from('notes').delete().eq('id', id)
     if (error) {
       alert('Error: ' + error.message)
       return
     }
-
     if (notasProyectoId) {
       const { data } = await supabase
         .from('notes')
@@ -209,238 +198,220 @@ export default function ProyectosPage() {
       p.name.toLowerCase().includes(q) ||
       (p.stack?.toLowerCase().includes(q) ?? false) ||
       (p.clients?.name.toLowerCase().includes(q) ?? false)
-
     const coincideEstado = filtroEstado === 'todos' || p.status === filtroEstado
-
     return coincideBusqueda && coincideEstado
   })
 
-  if (!user) {
-    return <p style={{ padding: '2rem', fontFamily: 'system-ui' }}>Cargando...</p>
-  }
+  if (!user) return <p className="p-8 text-zinc-500">Cargando...</p>
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: 700 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link href="/" style={{ color: '#0066cc', textDecoration: 'none', fontSize: '0.9rem' }}>← Dashboard</Link>
-          <h1 style={{ margin: 0 }}>Proyectos</h1>
-        </div>
-        <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span>{user.email}</span>
-          <button
-            onClick={handleLogout}
-            style={{
-              fontSize: '0.85rem',
-              padding: '0.4rem 0.8rem',
-              cursor: 'pointer',
-              background: '#dc2626',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-            }}
-          >
-            Salir
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-stone-50">
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <header className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-900 transition">
+              ← Dashboard
+            </Link>
+            <h1 className="text-2xl font-bold">Proyectos</h1>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-zinc-500">{user.email}</span>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
+            >
+              Salir
+            </button>
+          </div>
+        </header>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-        <input
-          placeholder="Nombre del proyecto *"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={{ padding: '0.6rem', border: '1px solid #ccc', borderRadius: 6 }}
-        />
-        <input
-          placeholder="Stack (ej: Next.js, React)"
-          value={stack}
-          onChange={(e) => setStack(e.target.value)}
-          style={{ padding: '0.6rem', border: '1px solid #ccc', borderRadius: 6 }}
-        />
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          style={{ padding: '0.6rem', border: '1px solid #ccc', borderRadius: 6 }}
-        >
-          {ESTADOS.map((e) => (
-            <option key={e} value={e}>{e}</option>
-          ))}
-        </select>
-        <select
-          value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-          required
-          style={{ padding: '0.6rem', border: '1px solid #ccc', borderRadius: 6 }}
-        >
-          <option value="">Seleccioná un cliente</option>
-          {clientes.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: '0.6rem', background: '#000', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
-        >
-          {loading ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar proyecto'}
-        </button>
-        {editandoId && (
-          <button
-            type="button"
-            onClick={limpiarForm}
-            style={{ padding: '0.6rem', background: '#eee', border: 'none', borderRadius: 6, cursor: 'pointer' }}
-          >
-            Cancelar edición
-          </button>
-        )}
-      </form>
-
-      <div style={{ marginTop: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-          <h2 style={{ margin: 0 }}>Lista ({proyectosFiltrados.length}{((busqueda || filtroEstado !== 'todos') && ` de ${proyectos.length}`)})</h2>
+        <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">
+            {editandoId ? 'Editar proyecto' : 'Nuevo proyecto'}
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <input
+              placeholder="Nombre del proyecto *"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            />
+            <input
+              placeholder="Stack (ej: Next.js, React)"
+              value={stack}
+              onChange={(e) => setStack(e.target.value)}
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              >
+                {ESTADOS.map((e) => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
+              <select
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                required
+                className="px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              >
+                <option value="">Seleccioná cliente</option>
+                {clientes.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition"
+              >
+                {loading ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar proyecto'}
+              </button>
+              {editandoId && (
+                <button
+                  type="button"
+                  onClick={limpiarForm}
+                  className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg font-medium transition"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </form>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+        <div className="flex justify-between items-center gap-4 mb-4">
+          <h2 className="text-lg font-semibold">
+            Lista <span className="text-zinc-500 font-normal">({proyectosFiltrados.length}{((busqueda || filtroEstado !== 'todos') && ` de ${proyectos.length}`)})</span>
+          </h2>
+        </div>
+        <div className="flex gap-3 mb-6">
           <input
             type="text"
-            placeholder="Buscar por nombre, stack o cliente"
+            placeholder="Buscar por nombre, stack o cliente..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            style={{ padding: '0.5rem', border: '1px solid #ccc', borderRadius: 6, fontSize: '0.85rem', flex: 1 }}
+            className="flex-1 px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
           />
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
-            style={{ padding: '0.5rem', border: '1px solid #ccc', borderRadius: 6, fontSize: '0.85rem' }}
+            className="px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
           >
-            <option value="todos">Todos los estados</option>
+            <option value="todos">Todos</option>
             {ESTADOS.map((e) => (
               <option key={e} value={e}>{e}</option>
             ))}
           </select>
         </div>
-      </div>
 
-      {proyectosFiltrados.length === 0 ? (
-        <p style={{ marginTop: '1rem' }}>
-          {busqueda || filtroEstado !== 'todos'
-            ? 'No hay proyectos que coincidan con los filtros.'
-            : 'No hay proyectos todavía.'}
-        </p>
-      ) : (
-        <ul style={{ marginTop: '0.5rem', listStyle: 'none', padding: 0 }}>
-          {proyectosFiltrados.map((p) => (
-            <li key={p.id} style={{ padding: '0.75rem', border: '1px solid #eee', borderRadius: 6, marginBottom: '0.5rem' }}>
-              <strong>{p.name}</strong>
-              <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                Cliente: {p.clients?.name ?? '—'} · Estado: {p.status}
-              </div>
-              {p.stack && <div style={{ fontSize: '0.85rem', color: '#666' }}>Stack: {p.stack}</div>}
-              <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={() => empezarEdicion(p)}
-                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', cursor: 'pointer' }}
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => abrirNotas(p)}
-                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', cursor: 'pointer' }}
-                >
-                  Notas
-                </button>
-                <button
-                  onClick={() => borrarProyecto(p.id)}
-                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', cursor: 'pointer', color: 'red' }}
-                >
-                  Borrar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+        {proyectosFiltrados.length === 0 ? (
+          <p className="text-zinc-500 py-8 text-center">
+            {busqueda || filtroEstado !== 'todos'
+              ? 'No hay proyectos que coincidan.'
+              : 'No hay proyectos todavía.'}
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {proyectosFiltrados.map((p) => (
+              <li key={p.id} className="bg-white border border-zinc-200 rounded-xl p-4 hover:border-zinc-300 hover:shadow-sm transition">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="font-semibold">{p.name}</h3>
+                      <span className={`px-2 py-0.5 text-xs rounded-full border ${statusColor[p.status] ?? 'bg-zinc-100 text-zinc-700 border-zinc-200'}`}>
+                        {p.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-zinc-500">
+                      Cliente: {p.clients?.name ?? '—'}
+                    </p>
+                    {p.stack && <p className="text-sm text-zinc-400 mt-0.5">{p.stack}</p>}
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => empezarEdicion(p)}
+                      className="px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md text-xs font-medium transition"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => abrirNotas(p)}
+                      className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-md text-xs font-medium transition"
+                    >
+                      Notas
+                    </button>
+                    <button
+                      onClick={() => borrarProyecto(p.id)}
+                      className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-md text-xs font-medium transition"
+                    >
+                      Borrar
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {notasProyectoId && (
         <div
           onClick={cerrarNotas}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-            zIndex: 50,
-          }}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: '#fff',
-              color: '#111',
-              borderRadius: 8,
-              padding: '1.5rem',
-              maxWidth: 500,
-              width: '100%',
-              maxHeight: '80vh',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+            className="bg-white border border-zinc-200 rounded-xl p-6 max-w-lg w-full max-h-[80vh] flex flex-col shadow-xl"
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ margin: 0 }}>Notas — {notasProyectoNombre}</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Notas — {notasProyectoNombre}</h3>
               <button
                 onClick={cerrarNotas}
-                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1 }}
+                className="text-zinc-400 hover:text-zinc-900 text-2xl leading-none transition"
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={agregarNota} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <form onSubmit={agregarNota} className="flex gap-2 mb-4">
               <input
                 placeholder="Nueva nota..."
                 value={nuevaNota}
                 onChange={(e) => setNuevaNota(e.target.value)}
-                style={{ flex: 1, padding: '0.5rem', border: '1px solid #ccc', borderRadius: 6 }}
+                className="flex-1 px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
               />
               <button
                 type="submit"
-                style={{ padding: '0.5rem 1rem', background: '#000', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
               >
                 Agregar
               </button>
             </form>
 
-            <div style={{ overflowY: 'auto', flex: 1 }}>
+            <div className="overflow-y-auto flex-1 -mx-2 px-2">
               {cargandoNotas ? (
-                <p>Cargando...</p>
+                <p className="text-zinc-500 text-center py-4">Cargando...</p>
               ) : notas.length === 0 ? (
-                <p style={{ color: '#666' }}>No hay notas todavía.</p>
+                <p className="text-zinc-500 text-center py-4">No hay notas todavía.</p>
               ) : (
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                <ul className="space-y-2">
                   {notas.map((n) => (
-                    <li
-                      key={n.id}
-                      style={{
-                        padding: '0.6rem',
-                        border: '1px solid #eee',
-                        borderRadius: 6,
-                        marginBottom: '0.5rem',
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      <div>{n.content}</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
-                        <span style={{ fontSize: '0.75rem', color: '#999' }}>
+                    <li key={n.id} className="bg-stone-50 border border-zinc-200 rounded-lg p-3">
+                      <p className="text-sm">{n.content}</p>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs text-zinc-400">
                           {new Date(n.created_at).toLocaleString('es-ES')}
                         </span>
                         <button
                           onClick={() => borrarNota(n.id)}
-                          style={{ fontSize: '0.75rem', color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}
+                          className="text-xs text-red-600 hover:text-red-700 transition"
                         >
                           Borrar
                         </button>
