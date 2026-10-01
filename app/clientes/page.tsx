@@ -23,6 +23,7 @@ export default function ClientesPage() {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [busqueda, setBusqueda] = useState('')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -98,6 +99,16 @@ export default function ClientesPage() {
     router.push('/login')
   }
 
+  const clientesFiltrados = clientes.filter((c) => {
+    const q = busqueda.toLowerCase().trim()
+    if (!q) return true
+    return (
+      c.name.toLowerCase().includes(q) ||
+      (c.email?.toLowerCase().includes(q) ?? false) ||
+      (c.phone?.toLowerCase().includes(q) ?? false)
+    )
+  })
+
   if (!user) {
     return <p style={{ padding: '2rem', fontFamily: 'system-ui' }}>Cargando...</p>
   }
@@ -167,13 +178,24 @@ export default function ClientesPage() {
         )}
       </form>
 
-      <h2 style={{ marginTop: '2rem' }}>Lista ({clientes.length})</h2>
+      <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+        <h2 style={{ margin: 0 }}>Lista ({clientesFiltrados.length}{busqueda && ` de ${clientes.length}`})</h2>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, email o teléfono"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          style={{ padding: '0.5rem', border: '1px solid #ccc', borderRadius: 6, fontSize: '0.85rem', flex: 1 }}
+        />
+      </div>
 
-      {clientes.length === 0 ? (
-        <p>No hay clientes todavía.</p>
+      {clientesFiltrados.length === 0 ? (
+        <p style={{ marginTop: '1rem' }}>
+          {busqueda ? 'No hay clientes que coincidan con la búsqueda.' : 'No hay clientes todavía.'}
+        </p>
       ) : (
         <ul style={{ marginTop: '0.5rem', listStyle: 'none', padding: 0 }}>
-          {clientes.map((c) => (
+          {clientesFiltrados.map((c) => (
             <li key={c.id} style={{ padding: '0.75rem', border: '1px solid #eee', borderRadius: 6, marginBottom: '0.5rem' }}>
               <strong>{c.name}</strong>
               {c.email && <div style={{ fontSize: '0.85rem', color: '#666' }}>{c.email}</div>}

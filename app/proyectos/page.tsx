@@ -34,6 +34,8 @@ export default function ProyectosPage() {
   const [clientId, setClientId] = useState('')
   const [loading, setLoading] = useState(false)
   const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [busqueda, setBusqueda] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState<string>('todos')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -115,6 +117,19 @@ export default function ProyectosPage() {
     await supabase.auth.signOut()
     router.push('/login')
   }
+
+  const proyectosFiltrados = proyectos.filter((p) => {
+    const q = busqueda.toLowerCase().trim()
+    const coincideBusqueda =
+      !q ||
+      p.name.toLowerCase().includes(q) ||
+      (p.stack?.toLowerCase().includes(q) ?? false) ||
+      (p.clients?.name.toLowerCase().includes(q) ?? false)
+
+    const coincideEstado = filtroEstado === 'todos' || p.status === filtroEstado
+
+    return coincideBusqueda && coincideEstado
+  })
 
   if (!user) {
     return <p style={{ padding: '2rem', fontFamily: 'system-ui' }}>Cargando...</p>
@@ -198,13 +213,40 @@ export default function ProyectosPage() {
         )}
       </form>
 
-      <h2 style={{ marginTop: '2rem' }}>Lista ({proyectos.length})</h2>
+      <div style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+          <h2 style={{ margin: 0 }}>Lista ({proyectosFiltrados.length}{((busqueda || filtroEstado !== 'todos') && ` de ${proyectos.length}`)})</h2>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <input
+            type="text"
+            placeholder="Buscar por nombre, stack o cliente"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            style={{ padding: '0.5rem', border: '1px solid #ccc', borderRadius: 6, fontSize: '0.85rem', flex: 1 }}
+          />
+          <select
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+            style={{ padding: '0.5rem', border: '1px solid #ccc', borderRadius: 6, fontSize: '0.85rem' }}
+          >
+            <option value="todos">Todos los estados</option>
+            {ESTADOS.map((e) => (
+              <option key={e} value={e}>{e}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-      {proyectos.length === 0 ? (
-        <p>No hay proyectos todavía.</p>
+      {proyectosFiltrados.length === 0 ? (
+        <p style={{ marginTop: '1rem' }}>
+          {busqueda || filtroEstado !== 'todos'
+            ? 'No hay proyectos que coincidan con los filtros.'
+            : 'No hay proyectos todavía.'}
+        </p>
       ) : (
         <ul style={{ marginTop: '0.5rem', listStyle: 'none', padding: 0 }}>
-          {proyectos.map((p) => (
+          {proyectosFiltrados.map((p) => (
             <li key={p.id} style={{ padding: '0.75rem', border: '1px solid #eee', borderRadius: 6, marginBottom: '0.5rem' }}>
               <strong>{p.name}</strong>
               <div style={{ fontSize: '0.85rem', color: '#666' }}>
