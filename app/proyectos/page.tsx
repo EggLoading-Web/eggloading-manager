@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { Header } from '@/components/Header'
 import { supabase } from '@/lib/supabase'
+import { useI18n } from '@/lib/i18n'
 import type { User } from '@supabase/supabase-js'
 
 type Cliente = { id: string; name: string }
@@ -24,7 +25,7 @@ type Nota = {
   created_at: string
 }
 
-const ESTADOS = ['pendiente', 'en progreso', 'entregado']
+const ESTADOS = ['pendiente', 'en progreso', 'entregado'] as const
 
 const statusColor: Record<string, string> = {
   pendiente: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -34,6 +35,7 @@ const statusColor: Record<string, string> = {
 
 export default function ProyectosPage() {
   const router = useRouter()
+  const { t } = useI18n()
   const [user, setUser] = useState<User | null>(null)
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -61,6 +63,13 @@ export default function ProyectosPage() {
       }
     })
   }, [router])
+
+  function labelEstado(s: string): string {
+    if (s === 'pendiente') return t('pending')
+    if (s === 'en progreso') return t('inProgress')
+    if (s === 'entregado') return t('delivered')
+    return s
+  }
 
   async function cargarTodo() {
     const [proyectosRes, clientesRes] = await Promise.all([
@@ -116,18 +125,13 @@ export default function ProyectosPage() {
   }
 
   async function borrarProyecto(id: string) {
-    if (!confirm('¿Borrar este proyecto? También se borrarán sus notas.')) return
+    if (!confirm(t('confirmDeleteProject'))) return
     const { error } = await supabase.from('projects').delete().eq('id', id)
     if (error) {
       alert('Error: ' + error.message)
       return
     }
     await cargarTodo()
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
   }
 
   async function abrirNotas(proyecto: Proyecto) {
@@ -175,7 +179,7 @@ export default function ProyectosPage() {
   }
 
   async function borrarNota(id: string) {
-    if (!confirm('¿Borrar esta nota?')) return
+    if (!confirm(t('confirmDeleteNote'))) return
     const { error } = await supabase.from('notes').delete().eq('id', id)
     if (error) {
       alert('Error: ' + error.message)
@@ -202,64 +206,48 @@ export default function ProyectosPage() {
     return coincideBusqueda && coincideEstado
   })
 
-  if (!user) return <p className="p-8 text-zinc-500">Cargando...</p>
+  if (!user) return <p className="p-8 text-zinc-500">{t('loading')}</p>
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <header className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-900 transition">
-              ← Dashboard
-            </Link>
-            <h1 className="text-2xl font-bold">Proyectos</h1>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-zinc-500">{user.email}</span>
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
-            >
-              Salir
-            </button>
-          </div>
-        </header>
+      <Header user={user} breadcrumb={t('projectsTitle')} />
 
+      <div className="max-w-3xl mx-auto px-6 py-8">
         <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">
-            {editandoId ? 'Editar proyecto' : 'Nuevo proyecto'}
+            {editandoId ? t('editProject') : t('newProject')}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-3">
             <input
-              placeholder="Nombre del proyecto *"
+              placeholder={t('projectNamePlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
             <input
-              placeholder="Stack (ej: Next.js, React)"
+              placeholder={t('stackPlaceholder')}
               value={stack}
               onChange={(e) => setStack(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
             <div className="grid grid-cols-2 gap-3">
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
               >
                 {ESTADOS.map((e) => (
-                  <option key={e} value={e}>{e}</option>
+                  <option key={e} value={e}>{labelEstado(e)}</option>
                 ))}
               </select>
               <select
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
                 required
-                className="px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
               >
-                <option value="">Seleccioná cliente</option>
+                <option value="">{t('selectClient')}</option>
                 {clientes.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -271,7 +259,7 @@ export default function ProyectosPage() {
                 disabled={loading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition"
               >
-                {loading ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar proyecto'}
+                {loading ? t('saving') : editandoId ? t('saveChanges') : t('addProject')}
               </button>
               {editandoId && (
                 <button
@@ -279,7 +267,7 @@ export default function ProyectosPage() {
                   onClick={limpiarForm}
                   className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg font-medium transition"
                 >
-                  Cancelar
+                  {t('cancel')}
                 </button>
               )}
             </div>
@@ -288,34 +276,32 @@ export default function ProyectosPage() {
 
         <div className="flex justify-between items-center gap-4 mb-4">
           <h2 className="text-lg font-semibold">
-            Lista <span className="text-zinc-500 font-normal">({proyectosFiltrados.length}{((busqueda || filtroEstado !== 'todos') && ` de ${proyectos.length}`)})</span>
+            {t('list')} <span className="text-zinc-500 font-normal">({proyectosFiltrados.length}{((busqueda || filtroEstado !== 'todos') && ` / ${proyectos.length}`)})</span>
           </h2>
         </div>
         <div className="flex gap-3 mb-6">
           <input
             type="text"
-            placeholder="Buscar por nombre, stack o cliente..."
+            placeholder={t('searchProjects')}
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="flex-1 px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            className="flex-1 px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
           />
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
-            className="px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            className="px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
           >
-            <option value="todos">Todos</option>
+            <option value="todos">{t('allStatuses')}</option>
             {ESTADOS.map((e) => (
-              <option key={e} value={e}>{e}</option>
+              <option key={e} value={e}>{labelEstado(e)}</option>
             ))}
           </select>
         </div>
 
         {proyectosFiltrados.length === 0 ? (
           <p className="text-zinc-500 py-8 text-center">
-            {busqueda || filtroEstado !== 'todos'
-              ? 'No hay proyectos que coincidan.'
-              : 'No hay proyectos todavía.'}
+            {busqueda || filtroEstado !== 'todos' ? t('noProjectsMatch') : t('noProjects')}
           </p>
         ) : (
           <ul className="space-y-3">
@@ -326,11 +312,11 @@ export default function ProyectosPage() {
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="font-semibold">{p.name}</h3>
                       <span className={`px-2 py-0.5 text-xs rounded-full border ${statusColor[p.status] ?? 'bg-zinc-100 text-zinc-700 border-zinc-200'}`}>
-                        {p.status}
+                        {labelEstado(p.status)}
                       </span>
                     </div>
                     <p className="text-sm text-zinc-500">
-                      Cliente: {p.clients?.name ?? '—'}
+                      {t('client')}: {p.clients?.name ?? t('unknownClient')}
                     </p>
                     {p.stack && <p className="text-sm text-zinc-400 mt-0.5">{p.stack}</p>}
                   </div>
@@ -339,19 +325,19 @@ export default function ProyectosPage() {
                       onClick={() => empezarEdicion(p)}
                       className="px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md text-xs font-medium transition"
                     >
-                      Editar
+                      {t('edit')}
                     </button>
                     <button
                       onClick={() => abrirNotas(p)}
                       className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-md text-xs font-medium transition"
                     >
-                      Notas
+                      {t('notes')}
                     </button>
                     <button
                       onClick={() => borrarProyecto(p.id)}
                       className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-md text-xs font-medium transition"
                     >
-                      Borrar
+                      {t('delete')}
                     </button>
                   </div>
                 </div>
@@ -371,7 +357,7 @@ export default function ProyectosPage() {
             className="bg-white border border-zinc-200 rounded-xl p-6 max-w-lg w-full max-h-[80vh] flex flex-col shadow-xl"
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Notas — {notasProyectoNombre}</h3>
+              <h3 className="text-lg font-semibold">{t('notesTitle')} — {notasProyectoNombre}</h3>
               <button
                 onClick={cerrarNotas}
                 className="text-zinc-400 hover:text-zinc-900 text-2xl leading-none transition"
@@ -382,24 +368,24 @@ export default function ProyectosPage() {
 
             <form onSubmit={agregarNota} className="flex gap-2 mb-4">
               <input
-                placeholder="Nueva nota..."
+                placeholder={t('newNotePlaceholder')}
                 value={nuevaNota}
                 onChange={(e) => setNuevaNota(e.target.value)}
-                className="flex-1 px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                className="flex-1 px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
               />
               <button
                 type="submit"
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
               >
-                Agregar
+                {t('addNote')}
               </button>
             </form>
 
             <div className="overflow-y-auto flex-1 -mx-2 px-2">
               {cargandoNotas ? (
-                <p className="text-zinc-500 text-center py-4">Cargando...</p>
+                <p className="text-zinc-500 text-center py-4">{t('loadingNotes')}</p>
               ) : notas.length === 0 ? (
-                <p className="text-zinc-500 text-center py-4">No hay notas todavía.</p>
+                <p className="text-zinc-500 text-center py-4">{t('noNotes')}</p>
               ) : (
                 <ul className="space-y-2">
                   {notas.map((n) => (
@@ -407,13 +393,13 @@ export default function ProyectosPage() {
                       <p className="text-sm">{n.content}</p>
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-xs text-zinc-400">
-                          {new Date(n.created_at).toLocaleString('es-ES')}
+                          {new Date(n.created_at).toLocaleString()}
                         </span>
                         <button
                           onClick={() => borrarNota(n.id)}
                           className="text-xs text-red-600 hover:text-red-700 transition"
                         >
-                          Borrar
+                          {t('delete')}
                         </button>
                       </div>
                     </li>

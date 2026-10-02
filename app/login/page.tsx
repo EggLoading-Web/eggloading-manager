@@ -3,9 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useI18n } from '@/lib/i18n'
+import { LanguageSelector } from '@/components/LanguageSelector'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { t } = useI18n()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -34,6 +37,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
       <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <LanguageSelector />
+        </div>
+
         <div className="bg-white border border-zinc-200 rounded-xl p-8 shadow-sm">
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 mb-3">
@@ -41,13 +48,15 @@ export default function LoginPage() {
               <span className="font-bold text-lg">Egg Loading</span>
             </div>
             <h1 className="text-2xl font-bold">
-              {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+              {mode === 'login' ? t('loginTitle') : t('registerTitle')}
             </h1>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                {t('emailPlaceholder')}
+              </label>
               <input
                 type="email"
                 placeholder="tu@email.com"
@@ -59,10 +68,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1.5">Contraseña</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                {t('passwordPlaceholder')}
+              </label>
               <input
                 type="password"
-                placeholder="Mínimo 6 caracteres"
+                placeholder={t('passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -76,7 +87,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
             >
-              {loading ? 'Cargando...' : mode === 'login' ? 'Entrar' : 'Registrarme'}
+              {loading ? t('loading') : mode === 'login' ? t('loginButton') : t('registerButton')}
             </button>
           </form>
 
@@ -91,7 +102,7 @@ export default function LoginPage() {
             onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
             className="w-full mt-6 text-sm text-zinc-500 hover:text-zinc-900 transition"
           >
-            {mode === 'login' ? '¿No tenés cuenta? Registrate' : '¿Ya tenés cuenta? Iniciá sesión'}
+            {mode === 'login' ? t('noAccount') : t('hasAccount')}
           </button>
         </div>
       </div>

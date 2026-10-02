@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { Header } from '@/components/Header'
 import { supabase } from '@/lib/supabase'
+import { useI18n } from '@/lib/i18n'
 import type { User } from '@supabase/supabase-js'
 
 type Cliente = {
@@ -16,6 +17,7 @@ type Cliente = {
 
 export default function ClientesPage() {
   const router = useRouter()
+  const { t } = useI18n()
   const [user, setUser] = useState<User | null>(null)
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [name, setName] = useState('')
@@ -79,18 +81,13 @@ export default function ClientesPage() {
   }
 
   async function borrarCliente(id: string) {
-    if (!confirm('¿Borrar este cliente?')) return
+    if (!confirm(t('confirmDeleteClient'))) return
     const { error } = await supabase.from('clients').delete().eq('id', id)
     if (error) {
       alert('Error: ' + error.message)
       return
     }
     await cargarClientes()
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
   }
 
   const clientesFiltrados = clientes.filter((c) => {
@@ -103,53 +100,37 @@ export default function ClientesPage() {
     )
   })
 
-  if (!user) return <p className="p-8 text-zinc-500">Cargando...</p>
+  if (!user) return <p className="p-8 text-zinc-500">{t('loading')}</p>
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <header className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-900 transition">
-              ← Dashboard
-            </Link>
-            <h1 className="text-2xl font-bold">Clientes</h1>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-zinc-500">{user.email}</span>
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
-            >
-              Salir
-            </button>
-          </div>
-        </header>
+      <Header user={user} breadcrumb={t('clientsTitle')} />
 
+      <div className="max-w-3xl mx-auto px-6 py-8">
         <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">
-            {editandoId ? 'Editar cliente' : 'Nuevo cliente'}
+            {editandoId ? t('editClient') : t('newClient')}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-3">
             <input
-              placeholder="Nombre *"
+              placeholder={t('namePlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
             <input
-              placeholder="Email"
+              placeholder={t('emailPlaceholder')}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
             <input
-              placeholder="Teléfono"
+              placeholder={t('phonePlaceholder')}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
             <div className="flex gap-2 pt-1">
               <button
@@ -157,7 +138,7 @@ export default function ClientesPage() {
                 disabled={loading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition"
               >
-                {loading ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar cliente'}
+                {loading ? t('saving') : editandoId ? t('saveChanges') : t('addClient')}
               </button>
               {editandoId && (
                 <button
@@ -165,7 +146,7 @@ export default function ClientesPage() {
                   onClick={limpiarForm}
                   className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg font-medium transition"
                 >
-                  Cancelar
+                  {t('cancel')}
                 </button>
               )}
             </div>
@@ -174,20 +155,20 @@ export default function ClientesPage() {
 
         <div className="flex justify-between items-center gap-4 mb-4">
           <h2 className="text-lg font-semibold">
-            Lista <span className="text-zinc-500 font-normal">({clientesFiltrados.length}{busqueda && ` de ${clientes.length}`})</span>
+            {t('list')} <span className="text-zinc-500 font-normal">({clientesFiltrados.length}{busqueda && ` / ${clientes.length}`})</span>
           </h2>
           <input
             type="text"
-            placeholder="Buscar..."
+            placeholder={t('search')}
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-64 px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            className="w-64 px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
           />
         </div>
 
         {clientesFiltrados.length === 0 ? (
           <p className="text-zinc-500 py-8 text-center">
-            {busqueda ? 'No hay clientes que coincidan.' : 'No hay clientes todavía.'}
+            {busqueda ? t('noClientsMatch') : t('noClients')}
           </p>
         ) : (
           <ul className="space-y-3">
@@ -204,13 +185,13 @@ export default function ClientesPage() {
                       onClick={() => empezarEdicion(c)}
                       className="px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md text-xs font-medium transition"
                     >
-                      Editar
+                      {t('edit')}
                     </button>
                     <button
                       onClick={() => borrarCliente(c.id)}
                       className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-md text-xs font-medium transition"
                     >
-                      Borrar
+                      {t('delete')}
                     </button>
                   </div>
                 </div>
