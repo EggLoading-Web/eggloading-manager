@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/Header'
 import { SkeletonCard } from '@/components/Skeleton'
+import { FormField, inputBaseClass, inputErrorClass } from '@/components/FormField'
 import { supabase } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { useToast } from '@/lib/toast'
+import { proyectoSchema } from '@/lib/validations'
 import type { User } from '@supabase/supabase-js'
 
 type Cliente = { id: string; name: string }
@@ -25,6 +27,13 @@ type Nota = {
   id: string
   content: string
   created_at: string
+}
+
+type FormErrors = {
+  name?: string
+  stack?: string
+  status?: string
+  client_id?: string
 }
 
 const ESTADOS = ['pendiente', 'en progreso', 'entregado'] as const
@@ -51,6 +60,7 @@ export default function ProyectosPage() {
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
+  const [errors, setErrors] = useState<FormErrors>({})
 
   const [notasProyectoId, setNotasProyectoId] = useState<string | null>(null)
   const [notasProyectoNombre, setNotasProyectoNombre] = useState('')
@@ -73,6 +83,10 @@ export default function ProyectosPage() {
     if (s === 'en progreso') return t('inProgress')
     if (s === 'entregado') return t('delivered')
     return s
+  }
+
+  function traducirError(code: string): string {
+    return t(code as any) ?? code
   }
 
   async function cargarTodo() {
@@ -98,6 +112,7 @@ export default function ProyectosPage() {
     setStatus('pendiente')
     setClientId('')
     setEditandoId(null)
+    setErrors({})
   }
 
   function empezarEdicion(p: Proyecto) {
@@ -106,14 +121,39 @@ export default function ProyectosPage() {
     setStatus(p.status)
     setClientId(p.client_id)
     setEditandoId(p.id)
+    setErrors({})
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setErrors({})
+
+    const result = proyectoSchema.safeParse({
+      name,
+      stack: stack || null,
+      status,
+      client_id: clientId,
+    })
+
+    if (!result.success) {
+      const fieldErrors: FormErrors = {}
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof FormErrors
+        fieldErrors[field] = traducirError(issue.message)
+      })
+      setErrors(fieldErrors)
+      return
+    }
+
     setLoading(true)
 
-    const datos = { name, stack: stack || null, status, client_id: clientId }
+    const datos = {
+      name: result.data.name,
+      stack: result.data.stack || null,
+      status: result.data.status,
+      client_id: result.data.client_id,
+    }
 
     const { error } = editandoId
       ? await supabase.from('projects').update(datos).eq('id', editandoId)
@@ -239,42 +279,61 @@ export default function ProyectosPage() {
           <h2 className="text-lg font-semibold mb-4">
             {editandoId ? t('editProject') : t('newProject')}
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              placeholder={t('projectNamePlaceholder')}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
-            />
-            <input
-              placeholder={t('stackPlaceholder')}
-              value={stack}
-              onChange={(e) => setStack(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
-            />
+          <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+            <FormField error={errors.name}>
+              <input
+                placeholder={t('projectNamePlaceholder')}
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  if (errors.name) setErrors({ ...errors, name: undefined })
+                }}
+                className={`${inputBaseClass} ${errors.name ? inputErrorClass : ''}`}
+              />
+            </FormField>
+
+            <FormField error={errors.stack}>
+              <input
+                placeholder={t('stackPlaceholder')}
+                value={stack}
+                onChange={(e) => {
+                  setStack(e.target.value)
+                  if (errors.stack) setErrors({ ...errors, stack: undefined })
+                }}
+                className={`${inputBaseClass} ${errors.stack ? inputErrorClass : ''}`}
+              />
+            </FormField>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
-              >
-                {ESTADOS.map((e) => (
-                  <option key={e} value={e}>{labelEstado(e)}</option>
-                ))}
-              </select>
-              <select
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                required
-                className="px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
-              >
-                <option value="">{t('selectClient')}</option>
-                {clientes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+              <FormField error={errors.status}>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className={inputBaseClass}
+                >
+                  {ESTADOS.map((e) => (
+                    <option key={e} value={e}>{labelEstado(e)}</option>
+                  ))}
+                </select>
+              </FormField>
+
+              <FormField error={errors.client_id}>
+                <select
+                  value={clientId}
+                  onChange={(e) => {
+                    setClientId(e.target.value)
+                    if (errors.client_id) setErrors({ ...errors, client_id: undefined })
+                  }}
+                  className={`${inputBaseClass} ${errors.client_id ? inputErrorClass : ''}`}
+                >
+                  <option value="">{t('selectClient')}</option>
+                  {clientes.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </FormField>
             </div>
+
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
@@ -399,7 +458,8 @@ export default function ProyectosPage() {
                 placeholder={t('newNotePlaceholder')}
                 value={nuevaNota}
                 onChange={(e) => setNuevaNota(e.target.value)}
-                className="flex-1 px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                maxLength={500}
+                className={inputBaseClass}
               />
               <button
                 type="submit"

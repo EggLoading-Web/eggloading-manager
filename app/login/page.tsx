@@ -2,10 +2,22 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { LanguageSelector } from '@/components/LanguageSelector'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { FormField, inputBaseClass, inputErrorClass } from '@/components/FormField'
+
+const authSchema = z.object({
+  email: z.string().email('errEmail'),
+  password: z.string().min(6, 'errRequired'),
+})
+
+type FormErrors = {
+  email?: string
+  password?: string
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -15,11 +27,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [errors, setErrors] = useState<FormErrors>({})
+
+  function traducirError(code: string): string {
+    return t(code as any) ?? code
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
     setError('')
+    setErrors({})
+
+    const result = authSchema.safeParse({ email, password })
+    if (!result.success) {
+      const fieldErrors: FormErrors = {}
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof FormErrors
+        fieldErrors[field] = traducirError(issue.message)
+      })
+      setErrors(fieldErrors)
+      return
+    }
+
+    setLoading(true)
 
     const { error } = mode === 'login'
       ? await supabase.auth.signInWithPassword({ email, password })
@@ -54,35 +84,32 @@ export default function LoginPage() {
             </h1>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Email
-              </label>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <FormField label="Email" error={errors.email}>
               <input
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  if (errors.email) setErrors({ ...errors, email: undefined })
+                }}
+                className={`${inputBaseClass} ${errors.email ? inputErrorClass : ''}`}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                {t('passwordPlaceholder')}
-              </label>
+            <FormField label={t('passwordPlaceholder')} error={errors.password}>
               <input
                 type="password"
                 placeholder={t('passwordPlaceholder')}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (errors.password) setErrors({ ...errors, password: undefined })
+                }}
+                className={`${inputBaseClass} ${errors.password ? inputErrorClass : ''}`}
               />
-            </div>
+            </FormField>
 
             <button
               type="submit"
@@ -101,7 +128,11 @@ export default function LoginPage() {
 
           <button
             type="button"
-            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            onClick={() => {
+              setMode(mode === 'login' ? 'register' : 'login')
+              setErrors({})
+              setError('')
+            }}
             className="w-full mt-6 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition"
           >
             {mode === 'login' ? t('noAccount') : t('hasAccount')}

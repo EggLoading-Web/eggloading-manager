@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/Header'
 import { SkeletonCard } from '@/components/Skeleton'
+import { FormField, inputBaseClass, inputErrorClass } from '@/components/FormField'
 import { supabase } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { useToast } from '@/lib/toast'
+import { clienteSchema } from '@/lib/validations'
 import type { User } from '@supabase/supabase-js'
 
 type Cliente = {
@@ -15,6 +17,12 @@ type Cliente = {
   email: string | null
   phone: string | null
   notes: string | null
+}
+
+type FormErrors = {
+  name?: string
+  email?: string
+  phone?: string
 }
 
 export default function ClientesPage() {
@@ -30,6 +38,7 @@ export default function ClientesPage() {
   const [cargandoLista, setCargandoLista] = useState(true)
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
+  const [errors, setErrors] = useState<FormErrors>({})
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -55,6 +64,7 @@ export default function ClientesPage() {
     setEmail('')
     setPhone('')
     setEditandoId(null)
+    setErrors({})
   }
 
   function empezarEdicion(c: Cliente) {
@@ -62,14 +72,41 @@ export default function ClientesPage() {
     setEmail(c.email ?? '')
     setPhone(c.phone ?? '')
     setEditandoId(c.id)
+    setErrors({})
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function traducirError(code: string): string {
+    return t(code as any) ?? code
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setErrors({})
+
+    const result = clienteSchema.safeParse({
+      name,
+      email: email || null,
+      phone: phone || null,
+    })
+
+    if (!result.success) {
+      const fieldErrors: FormErrors = {}
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof FormErrors
+        fieldErrors[field] = traducirError(issue.message)
+      })
+      setErrors(fieldErrors)
+      return
+    }
+
     setLoading(true)
 
-    const datos = { name, email: email || null, phone: phone || null }
+    const datos = {
+      name: result.data.name,
+      email: result.data.email || null,
+      phone: result.data.phone || null,
+    }
 
     const { error } = editandoId
       ? await supabase.from('clients').update(datos).eq('id', editandoId)
@@ -131,27 +168,44 @@ export default function ClientesPage() {
           <h2 className="text-lg font-semibold mb-4">
             {editandoId ? t('editClient') : t('newClient')}
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              placeholder={t('namePlaceholder')}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
-            />
-            <input
-              placeholder={t('emailPlaceholder')}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
-            />
-            <input
-              placeholder={t('phonePlaceholder')}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
-            />
+          <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+            <FormField error={errors.name}>
+              <input
+                placeholder={t('namePlaceholder')}
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  if (errors.name) setErrors({ ...errors, name: undefined })
+                }}
+                className={`${inputBaseClass} ${errors.name ? inputErrorClass : ''}`}
+              />
+            </FormField>
+
+            <FormField error={errors.email}>
+              <input
+                placeholder={t('emailPlaceholder')}
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  if (errors.email) setErrors({ ...errors, email: undefined })
+                }}
+                className={`${inputBaseClass} ${errors.email ? inputErrorClass : ''}`}
+              />
+            </FormField>
+
+            <FormField error={errors.phone}>
+              <input
+                placeholder={t('phonePlaceholder')}
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value)
+                  if (errors.phone) setErrors({ ...errors, phone: undefined })
+                }}
+                className={`${inputBaseClass} ${errors.phone ? inputErrorClass : ''}`}
+              />
+            </FormField>
+
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"

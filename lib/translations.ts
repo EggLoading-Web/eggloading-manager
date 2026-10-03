@@ -78,6 +78,13 @@ export const translations = {
     noteCreated: 'Nota agregada',
     noteDeleted: 'Nota eliminada',
     errorGeneric: 'Ocurrió un error',
+
+    // Errores de validación
+    errRequired: 'Este campo es obligatorio',
+    errEmail: 'Email inválido',
+    errClientRequired: 'Seleccioná un cliente',
+    errNoteRequired: 'La nota no puede estar vacía',
+    errTooLong: 'El texto es demasiado largo',
   },
 
   en: {
@@ -157,6 +164,13 @@ export const translations = {
     noteCreated: 'Note added',
     noteDeleted: 'Note deleted',
     errorGeneric: 'Something went wrong',
+
+    // Errores de validación
+    errRequired: 'This field is required',
+    errEmail: 'Invalid email',
+    errClientRequired: 'Please select a client',
+    errNoteRequired: 'Note cannot be empty',
+    errTooLong: 'Text is too long',
   },
 
   it: {
@@ -236,6 +250,13 @@ export const translations = {
     noteCreated: 'Nota aggiunta',
     noteDeleted: 'Nota eliminata',
     errorGeneric: 'Si è verificato un errore',
+
+    // Errores de validación
+    errRequired: 'Questo campo è obbligatorio',
+    errEmail: 'Email non valida',
+    errClientRequired: 'Seleziona un cliente',
+    errNoteRequired: 'La nota non può essere vuota',
+    errTooLong: 'Il testo è troppo lungo',
   },
 } as const
 
