@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter, Poppins } from 'next/font/google'
 import { I18nProvider } from '@/lib/i18n'
+import { ToastProvider } from '@/lib/toast'
+import { ThemeProvider } from '@/lib/theme'
 import './globals.css'
 
 const inter = Inter({
@@ -28,10 +30,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${inter.variable} ${poppins.variable}`}>
-      <body className="min-h-screen bg-stone-50 text-zinc-900 antialiased">
-        <I18nProvider>
-          {children}
-        </I18nProvider>
+      <body className="min-h-screen bg-stone-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
+        <ThemeProvider>
+          <I18nProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

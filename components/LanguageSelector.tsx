@@ -19,7 +19,7 @@ export function LanguageSelector() {
   const { lang, setLang } = useI18n()
 
   return (
-    <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-1">
+    <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
       {(Object.keys(FLAGS) as Lang[]).map((code) => (
         <button
           key={code}
@@ -28,8 +28,8 @@ export function LanguageSelector() {
           aria-label={LABELS[code]}
           className={`px-2 py-1 text-base rounded-md transition ${
             lang === code
-              ? 'bg-white shadow-sm'
-              : 'hover:bg-white/50 opacity-60 hover:opacity-100'
+              ? 'bg-white dark:bg-zinc-700 shadow-sm'
+              : 'hover:bg-white/50 dark:hover:bg-zinc-700/50 opacity-60 hover:opacity-100'
           }`}
         >
           {FLAGS[code]}

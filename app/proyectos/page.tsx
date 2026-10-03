@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/Header'
+import { SkeletonCard } from '@/components/Skeleton'
 import { supabase } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import { useToast } from '@/lib/toast'
 import type { User } from '@supabase/supabase-js'
 
 type Cliente = { id: string; name: string }
@@ -28,14 +30,15 @@ type Nota = {
 const ESTADOS = ['pendiente', 'en progreso', 'entregado'] as const
 
 const statusColor: Record<string, string> = {
-  pendiente: 'bg-amber-50 text-amber-700 border-amber-200',
-  'en progreso': 'bg-blue-50 text-blue-700 border-blue-200',
-  entregado: 'bg-green-50 text-green-700 border-green-200',
+  pendiente: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/50',
+  'en progreso': 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900/50',
+  entregado: 'bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50',
 }
 
 export default function ProyectosPage() {
   const router = useRouter()
   const { t } = useI18n()
+  const { toast } = useToast()
   const [user, setUser] = useState<User | null>(null)
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -44,6 +47,7 @@ export default function ProyectosPage() {
   const [status, setStatus] = useState('pendiente')
   const [clientId, setClientId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [cargandoLista, setCargandoLista] = useState(true)
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
@@ -85,6 +89,7 @@ export default function ProyectosPage() {
 
     setProyectos(proyectosConCliente as Proyecto[])
     setClientes(clientesRes.data ?? [])
+    setCargandoLista(false)
   }
 
   function limpiarForm() {
@@ -101,6 +106,7 @@ export default function ProyectosPage() {
     setStatus(p.status)
     setClientId(p.client_id)
     setEditandoId(p.id)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -114,11 +120,12 @@ export default function ProyectosPage() {
       : await supabase.from('projects').insert(datos)
 
     if (error) {
-      alert('Error: ' + error.message)
+      toast(error.message, 'error')
       setLoading(false)
       return
     }
 
+    toast(editandoId ? t('projectUpdated') : t('projectCreated'))
     limpiarForm()
     await cargarTodo()
     setLoading(false)
@@ -128,9 +135,10 @@ export default function ProyectosPage() {
     if (!confirm(t('confirmDeleteProject'))) return
     const { error } = await supabase.from('projects').delete().eq('id', id)
     if (error) {
-      alert('Error: ' + error.message)
+      toast(error.message, 'error')
       return
     }
+    toast(t('projectDeleted'))
     await cargarTodo()
   }
 
@@ -165,10 +173,11 @@ export default function ProyectosPage() {
     })
 
     if (error) {
-      alert('Error: ' + error.message)
+      toast(error.message, 'error')
       return
     }
 
+    toast(t('noteCreated'))
     setNuevaNota('')
     const { data } = await supabase
       .from('notes')
@@ -182,9 +191,10 @@ export default function ProyectosPage() {
     if (!confirm(t('confirmDeleteNote'))) return
     const { error } = await supabase.from('notes').delete().eq('id', id)
     if (error) {
-      alert('Error: ' + error.message)
+      toast(error.message, 'error')
       return
     }
+    toast(t('noteDeleted'))
     if (notasProyectoId) {
       const { data } = await supabase
         .from('notes')
@@ -206,14 +216,26 @@ export default function ProyectosPage() {
     return coincideBusqueda && coincideEstado
   })
 
-  if (!user) return <p className="p-8 text-zinc-500">{t('loading')}</p>
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-stone-50 dark:bg-zinc-950">
+        <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 h-16" />
+        <div className="max-w-3xl mx-auto px-6 py-8">
+          <div className="space-y-3">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-zinc-950">
       <Header user={user} breadcrumb={t('projectsTitle')} />
 
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 mb-8 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">
             {editandoId ? t('editProject') : t('newProject')}
           </h2>
@@ -223,19 +245,19 @@ export default function ProyectosPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+              className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
             <input
               placeholder={t('stackPlaceholder')}
               value={stack}
               onChange={(e) => setStack(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+              className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                className="px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
               >
                 {ESTADOS.map((e) => (
                   <option key={e} value={e}>{labelEstado(e)}</option>
@@ -245,7 +267,7 @@ export default function ProyectosPage() {
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
                 required
-                className="px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                className="px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
               >
                 <option value="">{t('selectClient')}</option>
                 {clientes.map((c) => (
@@ -265,7 +287,7 @@ export default function ProyectosPage() {
                 <button
                   type="button"
                   onClick={limpiarForm}
-                  className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg font-medium transition"
+                  className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg font-medium transition"
                 >
                   {t('cancel')}
                 </button>
@@ -274,23 +296,23 @@ export default function ProyectosPage() {
           </form>
         </div>
 
-        <div className="flex justify-between items-center gap-4 mb-4">
+        <div className="mb-4">
           <h2 className="text-lg font-semibold">
-            {t('list')} <span className="text-zinc-500 font-normal">({proyectosFiltrados.length}{((busqueda || filtroEstado !== 'todos') && ` / ${proyectos.length}`)})</span>
+            {t('list')} <span className="text-zinc-500 dark:text-zinc-400 font-normal">({proyectosFiltrados.length}{((busqueda || filtroEstado !== 'todos') && ` / ${proyectos.length}`)})</span>
           </h2>
         </div>
-        <div className="flex gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <input
             type="text"
             placeholder={t('searchProjects')}
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="flex-1 px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+            className="flex-1 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
           />
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
-            className="px-3 py-1.5 bg-white border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+            className="px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
           >
             <option value="todos">{t('allStatuses')}</option>
             {ESTADOS.map((e) => (
@@ -299,43 +321,49 @@ export default function ProyectosPage() {
           </select>
         </div>
 
-        {proyectosFiltrados.length === 0 ? (
-          <p className="text-zinc-500 py-8 text-center">
+        {cargandoLista ? (
+          <div className="space-y-3">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : proyectosFiltrados.length === 0 ? (
+          <p className="text-zinc-500 dark:text-zinc-400 py-8 text-center">
             {busqueda || filtroEstado !== 'todos' ? t('noProjectsMatch') : t('noProjects')}
           </p>
         ) : (
           <ul className="space-y-3">
             {proyectosFiltrados.map((p) => (
-              <li key={p.id} className="bg-white border border-zinc-200 rounded-xl p-4 hover:border-zinc-300 hover:shadow-sm transition">
-                <div className="flex justify-between items-start gap-4">
+              <li key={p.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
                       <h3 className="font-semibold">{p.name}</h3>
-                      <span className={`px-2 py-0.5 text-xs rounded-full border ${statusColor[p.status] ?? 'bg-zinc-100 text-zinc-700 border-zinc-200'}`}>
+                      <span className={`px-2 py-0.5 text-xs rounded-full border ${statusColor[p.status] ?? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'}`}>
                         {labelEstado(p.status)}
                       </span>
                     </div>
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       {t('client')}: {p.clients?.name ?? t('unknownClient')}
                     </p>
-                    {p.stack && <p className="text-sm text-zinc-400 mt-0.5">{p.stack}</p>}
+                    {p.stack && <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-0.5">{p.stack}</p>}
                   </div>
-                  <div className="flex gap-2 shrink-0">
+                  <div className="flex flex-wrap gap-2 shrink-0">
                     <button
                       onClick={() => empezarEdicion(p)}
-                      className="px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md text-xs font-medium transition"
+                      className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-md text-xs font-medium transition"
                     >
                       {t('edit')}
                     </button>
                     <button
                       onClick={() => abrirNotas(p)}
-                      className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-md text-xs font-medium transition"
+                      className="px-3 py-1 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-950 text-amber-700 dark:text-amber-400 rounded-md text-xs font-medium transition"
                     >
                       {t('notes')}
                     </button>
                     <button
                       onClick={() => borrarProyecto(p.id)}
-                      className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-md text-xs font-medium transition"
+                      className="px-3 py-1 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-950 text-red-700 dark:text-red-400 rounded-md text-xs font-medium transition"
                     >
                       {t('delete')}
                     </button>
@@ -354,13 +382,13 @@ export default function ProyectosPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-zinc-200 rounded-xl p-6 max-w-lg w-full max-h-[80vh] flex flex-col shadow-xl"
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 max-w-lg w-full max-h-[80vh] flex flex-col shadow-xl"
           >
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">{t('notesTitle')} — {notasProyectoNombre}</h3>
               <button
                 onClick={cerrarNotas}
-                className="text-zinc-400 hover:text-zinc-900 text-2xl leading-none transition"
+                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 text-2xl leading-none transition"
               >
                 ×
               </button>
@@ -371,7 +399,7 @@ export default function ProyectosPage() {
                 placeholder={t('newNotePlaceholder')}
                 value={nuevaNota}
                 onChange={(e) => setNuevaNota(e.target.value)}
-                className="flex-1 px-3 py-2 bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                className="flex-1 px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
               />
               <button
                 type="submit"
@@ -383,21 +411,21 @@ export default function ProyectosPage() {
 
             <div className="overflow-y-auto flex-1 -mx-2 px-2">
               {cargandoNotas ? (
-                <p className="text-zinc-500 text-center py-4">{t('loadingNotes')}</p>
+                <p className="text-zinc-500 dark:text-zinc-400 text-center py-4">{t('loadingNotes')}</p>
               ) : notas.length === 0 ? (
-                <p className="text-zinc-500 text-center py-4">{t('noNotes')}</p>
+                <p className="text-zinc-500 dark:text-zinc-400 text-center py-4">{t('noNotes')}</p>
               ) : (
                 <ul className="space-y-2">
                   {notas.map((n) => (
-                    <li key={n.id} className="bg-stone-50 border border-zinc-200 rounded-lg p-3">
-                      <p className="text-sm">{n.content}</p>
+                    <li key={n.id} className="bg-stone-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3">
+                      <p className="text-sm break-words">{n.content}</p>
                       <div className="flex justify-between items-center mt-2">
-                        <span className="text-xs text-zinc-400">
+                        <span className="text-xs text-zinc-400 dark:text-zinc-500">
                           {new Date(n.created_at).toLocaleString()}
                         </span>
                         <button
                           onClick={() => borrarNota(n.id)}
-                          className="text-xs text-red-600 hover:text-red-700 transition"
+                          className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 transition"
                         >
                           {t('delete')}
                         </button>

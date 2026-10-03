@@ -67,12 +67,25 @@ export const translations = {
     registerButton: 'Registrarme',
     noAccount: '¿No tenés cuenta? Registrate',
     hasAccount: '¿Ya tenés cuenta? Iniciá sesión',
+
+    // Toasts
+    clientCreated: 'Cliente creado',
+    clientUpdated: 'Cliente actualizado',
+    clientDeleted: 'Cliente eliminado',
+    projectCreated: 'Proyecto creado',
+    projectUpdated: 'Proyecto actualizado',
+    projectDeleted: 'Proyecto eliminado',
+    noteCreated: 'Nota agregada',
+    noteDeleted: 'Nota eliminada',
+    errorGeneric: 'Ocurrió un error',
   },
 
   en: {
+    // Header
     logout: 'Log out',
     loading: 'Loading...',
 
+    // Dashboard
     greeting: 'Hi 👋',
     greetingSubtitle: "Here's your activity summary.",
     metrics: 'Metrics',
@@ -83,6 +96,7 @@ export const translations = {
     inProgress: 'In progress',
     delivered: 'Delivered',
 
+    // Clientes
     clientsTitle: 'Clients',
     newClient: 'New client',
     editClient: 'Edit client',
@@ -101,6 +115,7 @@ export const translations = {
     delete: 'Delete',
     confirmDeleteClient: 'Delete this client?',
 
+    // Proyectos
     projectsTitle: 'Projects',
     newProject: 'New project',
     editProject: 'Edit project',
@@ -123,6 +138,7 @@ export const translations = {
     loadingNotes: 'Loading...',
     unknownClient: '—',
 
+    // Login
     loginTitle: 'Sign in',
     registerTitle: 'Create account',
     passwordPlaceholder: 'Minimum 6 characters',
@@ -130,14 +146,27 @@ export const translations = {
     registerButton: 'Sign up',
     noAccount: "Don't have an account? Sign up",
     hasAccount: 'Already have an account? Sign in',
+
+    // Toasts
+    clientCreated: 'Client created',
+    clientUpdated: 'Client updated',
+    clientDeleted: 'Client deleted',
+    projectCreated: 'Project created',
+    projectUpdated: 'Project updated',
+    projectDeleted: 'Project deleted',
+    noteCreated: 'Note added',
+    noteDeleted: 'Note deleted',
+    errorGeneric: 'Something went wrong',
   },
 
   it: {
+    // Header
     logout: 'Esci',
     loading: 'Caricamento...',
 
+    // Dashboard
     greeting: 'Ciao 👋',
-    greetingSubtitle: "Ecco il riepilogo della tua attività.",
+    greetingSubtitle: 'Ecco il riepilogo della tua attività.',
     metrics: 'Metriche',
     clients: 'Clienti',
     projects: 'Progetti',
@@ -146,6 +175,7 @@ export const translations = {
     inProgress: 'In corso',
     delivered: 'Consegnato',
 
+    // Clientes
     clientsTitle: 'Clienti',
     newClient: 'Nuovo cliente',
     editClient: 'Modifica cliente',
@@ -164,6 +194,7 @@ export const translations = {
     delete: 'Elimina',
     confirmDeleteClient: 'Eliminare questo cliente?',
 
+    // Proyectos
     projectsTitle: 'Progetti',
     newProject: 'Nuovo progetto',
     editProject: 'Modifica progetto',
@@ -186,6 +217,7 @@ export const translations = {
     loadingNotes: 'Caricamento...',
     unknownClient: '—',
 
+    // Login
     loginTitle: 'Accedi',
     registerTitle: 'Crea account',
     passwordPlaceholder: 'Minimo 6 caratteri',
@@ -193,6 +225,17 @@ export const translations = {
     registerButton: 'Registrati',
     noAccount: 'Non hai un account? Registrati',
     hasAccount: 'Hai già un account? Accedi',
+
+    // Toasts
+    clientCreated: 'Cliente creato',
+    clientUpdated: 'Cliente aggiornato',
+    clientDeleted: 'Cliente eliminato',
+    projectCreated: 'Progetto creato',
+    projectUpdated: 'Progetto aggiornato',
+    projectDeleted: 'Progetto eliminato',
+    noteCreated: 'Nota aggiunta',
+    noteDeleted: 'Nota eliminata',
+    errorGeneric: 'Si è verificato un errore',
   },
 } as const
 
