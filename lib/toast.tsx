@@ -52,35 +52,25 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            onClick={() => removeToast(t.id)}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[280px] max-w-md cursor-pointer ${colors[t.type]}`}
-            style={{ animation: 'slideIn 0.2s ease-out' }}
-          >
-            <span
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${iconColors[t.type]}`}
+      {toasts.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              onClick={() => removeToast(t.id)}
+              className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[280px] max-w-md cursor-pointer ${colors[t.type]}`}
+              style={{ animation: 'slideIn 0.2s ease-out' }}
             >
-              {icons[t.type]}
-            </span>
-            <span className="text-sm font-medium flex-1">{t.message}</span>
-          </div>
-        ))}
-      </div>
-      <style jsx global>{`
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
+              <span
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${iconColors[t.type]}`}
+              >
+                {icons[t.type]}
+              </span>
+              <span className="text-sm font-medium flex-1">{t.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </ToastContext.Provider>
   )
 }
