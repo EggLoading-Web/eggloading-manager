@@ -51,9 +51,10 @@ export default function LoginPage() {
 
     setLoading(true)
 
-    const { error } = mode === 'login'
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password })
+    const { error } =
+      mode === 'login'
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({ email, password })
 
     if (error) {
       setError(error.message)

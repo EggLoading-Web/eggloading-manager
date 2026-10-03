@@ -60,7 +60,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[280px] max-w-md cursor-pointer ${colors[t.type]}`}
             style={{ animation: 'slideIn 0.2s ease-out' }}
           >
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${iconColors[t.type]}`}>
+            <span
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${iconColors[t.type]}`}
+            >
               {icons[t.type]}
             </span>
             <span className="text-sm font-medium flex-1">{t.message}</span>

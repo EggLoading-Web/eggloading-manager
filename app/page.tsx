@@ -22,13 +22,18 @@ export default function LandingPage() {
       badge: 'CRM para freelancers',
       title1: 'Gestioná tus clientes y proyectos',
       titleAccent: 'sin perder el control',
-      subtitle: 'Egg Loading Manager es el CRM que uso para gestionar todos mis clientes y proyectos freelance. Simple, rápido y enfocado en lo que importa.',
+      subtitle:
+        'Egg Loading Manager es el CRM que uso para gestionar todos mis clientes y proyectos freelance. Simple, rápido y enfocado en lo que importa.',
       ctaPrimary: 'Empezar gratis',
       ctaDashboard: 'Ir al dashboard',
       ctaLogin: 'Iniciar sesión',
       features: [
         { icon: '👥', title: 'Clientes', desc: 'Centralizá toda la info de tus clientes.' },
-        { icon: '📁', title: 'Proyectos', desc: 'Seguimiento de estado: pendiente, en progreso, entregado.' },
+        {
+          icon: '📁',
+          title: 'Proyectos',
+          desc: 'Seguimiento de estado: pendiente, en progreso, entregado.',
+        },
         { icon: '📝', title: 'Notas', desc: 'Anotá todo lo que surja de cada proyecto.' },
         { icon: '📊', title: 'Dashboard', desc: 'Métricas claras de tu actividad.' },
         { icon: '🔍', title: 'Búsqueda', desc: 'Encontrá lo que necesitás al instante.' },
@@ -40,7 +45,8 @@ export default function LandingPage() {
       badge: 'CRM for freelancers',
       title1: 'Manage your clients and projects',
       titleAccent: 'without losing control',
-      subtitle: 'Egg Loading Manager is the CRM I use to manage all my freelance clients and projects. Simple, fast and focused on what matters.',
+      subtitle:
+        'Egg Loading Manager is the CRM I use to manage all my freelance clients and projects. Simple, fast and focused on what matters.',
       ctaPrimary: 'Get started free',
       ctaDashboard: 'Go to dashboard',
       ctaLogin: 'Sign in',
@@ -58,13 +64,18 @@ export default function LandingPage() {
       badge: 'CRM per freelancer',
       title1: 'Gestisci clienti e progetti',
       titleAccent: 'senza perdere il controllo',
-      subtitle: 'Egg Loading Manager è il CRM che uso per gestire tutti i miei clienti e progetti freelance. Semplice, veloce e focalizzato su ciò che conta.',
+      subtitle:
+        'Egg Loading Manager è il CRM che uso per gestire tutti i miei clienti e progetti freelance. Semplice, veloce e focalizzato su ciò che conta.',
       ctaPrimary: 'Inizia gratis',
       ctaDashboard: 'Vai alla dashboard',
       ctaLogin: 'Accedi',
       features: [
         { icon: '👥', title: 'Clienti', desc: 'Tutte le info dei tuoi clienti in un posto.' },
-        { icon: '📁', title: 'Progetti', desc: 'Traccia lo stato: in attesa, in corso, consegnato.' },
+        {
+          icon: '📁',
+          title: 'Progetti',
+          desc: 'Traccia lo stato: in attesa, in corso, consegnato.',
+        },
         { icon: '📝', title: 'Note', desc: 'Annota tutto per ogni progetto.' },
         { icon: '📊', title: 'Dashboard', desc: 'Metriche chiare della tua attività.' },
         { icon: '🔍', title: 'Ricerca', desc: 'Trova ciò che ti serve subito.' },
@@ -122,8 +133,7 @@ export default function LandingPage() {
           </span>
 
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-            {c.title1}{' '}
-            <span className="text-blue-600 dark:text-blue-400">{c.titleAccent}</span>
+            {c.title1} <span className="text-blue-600 dark:text-blue-400">{c.titleAccent}</span>
           </h1>
 
           <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">

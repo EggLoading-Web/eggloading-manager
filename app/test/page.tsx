@@ -6,7 +6,7 @@ export default async function TestPage() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'monospace' }}>
       <h1>Test de conexión Supabase</h1>
-      
+
       {error && (
         <div style={{ color: 'red', marginTop: '1rem' }}>
           <strong>Error:</strong> {error.message}

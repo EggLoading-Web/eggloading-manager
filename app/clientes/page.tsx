@@ -229,7 +229,11 @@ export default function ClientesPage() {
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4">
           <h2 className="text-lg font-semibold">
-            {t('list')} <span className="text-zinc-500 dark:text-zinc-400 font-normal">({clientesFiltrados.length}{busqueda && ` / ${clientes.length}`})</span>
+            {t('list')}{' '}
+            <span className="text-zinc-500 dark:text-zinc-400 font-normal">
+              ({clientesFiltrados.length}
+              {busqueda && ` / ${clientes.length}`})
+            </span>
           </h2>
           <input
             type="text"
@@ -253,12 +257,21 @@ export default function ClientesPage() {
         ) : (
           <ul className="space-y-3">
             {clientesFiltrados.map((c) => (
-              <li key={c.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition">
+              <li
+                key={c.id}
+                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition"
+              >
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold">{c.name}</h3>
-                    {c.email && <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 break-all">{c.email}</p>}
-                    {c.phone && <p className="text-sm text-zinc-500 dark:text-zinc-400">{c.phone}</p>}
+                    {c.email && (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 break-all">
+                        {c.email}
+                      </p>
+                    )}
+                    {c.phone && (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">{c.phone}</p>
+                    )}
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button

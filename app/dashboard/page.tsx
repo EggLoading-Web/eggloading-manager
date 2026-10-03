@@ -124,16 +124,28 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold mb-4">{t('projectsByStatus')}</h2>
             <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="bg-white dark:bg-zinc-900 border border-amber-200 dark:border-amber-900/50 rounded-xl p-5 text-center shadow-sm">
-                <div className="text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">{porEstado.pendiente}</div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{t('pending')}</div>
+                <div className="text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+                  {porEstado.pendiente}
+                </div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  {t('pending')}
+                </div>
               </div>
               <div className="bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-900/50 rounded-xl p-5 text-center shadow-sm">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{porEstado['en progreso']}</div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{t('inProgress')}</div>
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                  {porEstado['en progreso']}
+                </div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  {t('inProgress')}
+                </div>
               </div>
               <div className="bg-white dark:bg-zinc-900 border border-green-200 dark:border-green-900/50 rounded-xl p-5 text-center shadow-sm">
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{porEstado.entregado}</div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{t('delivered')}</div>
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+                  {porEstado.entregado}
+                </div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  {t('delivered')}
+                </div>
               </div>
             </div>
 

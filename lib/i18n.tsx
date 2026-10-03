@@ -30,11 +30,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return translations[lang][key] ?? translations.es[key] ?? key
   }
 
-  return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
-      {children}
-    </I18nContext.Provider>
-  )
+  return <I18nContext.Provider value={{ lang, setLang, t }}>{children}</I18nContext.Provider>
 }
 
 export function useI18n() {

@@ -39,9 +39,12 @@ type FormErrors = {
 const ESTADOS = ['pendiente', 'en progreso', 'entregado'] as const
 
 const statusColor: Record<string, string> = {
-  pendiente: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/50',
-  'en progreso': 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900/50',
-  entregado: 'bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50',
+  pendiente:
+    'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/50',
+  'en progreso':
+    'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900/50',
+  entregado:
+    'bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50',
 }
 
 export default function ProyectosPage() {
@@ -312,7 +315,9 @@ export default function ProyectosPage() {
                   className={inputBaseClass}
                 >
                   {ESTADOS.map((e) => (
-                    <option key={e} value={e}>{labelEstado(e)}</option>
+                    <option key={e} value={e}>
+                      {labelEstado(e)}
+                    </option>
                   ))}
                 </select>
               </FormField>
@@ -328,7 +333,9 @@ export default function ProyectosPage() {
                 >
                   <option value="">{t('selectClient')}</option>
                   {clientes.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
                   ))}
                 </select>
               </FormField>
@@ -357,7 +364,11 @@ export default function ProyectosPage() {
 
         <div className="mb-4">
           <h2 className="text-lg font-semibold">
-            {t('list')} <span className="text-zinc-500 dark:text-zinc-400 font-normal">({proyectosFiltrados.length}{((busqueda || filtroEstado !== 'todos') && ` / ${proyectos.length}`)})</span>
+            {t('list')}{' '}
+            <span className="text-zinc-500 dark:text-zinc-400 font-normal">
+              ({proyectosFiltrados.length}
+              {(busqueda || filtroEstado !== 'todos') && ` / ${proyectos.length}`})
+            </span>
           </h2>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -375,7 +386,9 @@ export default function ProyectosPage() {
           >
             <option value="todos">{t('allStatuses')}</option>
             {ESTADOS.map((e) => (
-              <option key={e} value={e}>{labelEstado(e)}</option>
+              <option key={e} value={e}>
+                {labelEstado(e)}
+              </option>
             ))}
           </select>
         </div>
@@ -393,19 +406,26 @@ export default function ProyectosPage() {
         ) : (
           <ul className="space-y-3">
             {proyectosFiltrados.map((p) => (
-              <li key={p.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition">
+              <li
+                key={p.id}
+                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition"
+              >
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
                       <h3 className="font-semibold">{p.name}</h3>
-                      <span className={`px-2 py-0.5 text-xs rounded-full border ${statusColor[p.status] ?? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'}`}>
+                      <span
+                        className={`px-2 py-0.5 text-xs rounded-full border ${statusColor[p.status] ?? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'}`}
+                      >
                         {labelEstado(p.status)}
                       </span>
                     </div>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       {t('client')}: {p.clients?.name ?? t('unknownClient')}
                     </p>
-                    {p.stack && <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-0.5">{p.stack}</p>}
+                    {p.stack && (
+                      <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-0.5">{p.stack}</p>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2 shrink-0">
                     <button
@@ -444,7 +464,9 @@ export default function ProyectosPage() {
             className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 max-w-lg w-full max-h-[80vh] flex flex-col shadow-xl"
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">{t('notesTitle')} — {notasProyectoNombre}</h3>
+              <h3 className="text-lg font-semibold">
+                {t('notesTitle')} — {notasProyectoNombre}
+              </h3>
               <button
                 onClick={cerrarNotas}
                 className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 text-2xl leading-none transition"
@@ -471,13 +493,18 @@ export default function ProyectosPage() {
 
             <div className="overflow-y-auto flex-1 -mx-2 px-2">
               {cargandoNotas ? (
-                <p className="text-zinc-500 dark:text-zinc-400 text-center py-4">{t('loadingNotes')}</p>
+                <p className="text-zinc-500 dark:text-zinc-400 text-center py-4">
+                  {t('loadingNotes')}
+                </p>
               ) : notas.length === 0 ? (
                 <p className="text-zinc-500 dark:text-zinc-400 text-center py-4">{t('noNotes')}</p>
               ) : (
                 <ul className="space-y-2">
                   {notas.map((n) => (
-                    <li key={n.id} className="bg-stone-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3">
+                    <li
+                      key={n.id}
+                      className="bg-stone-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3"
+                    >
                       <p className="text-sm break-words">{n.content}</p>
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-xs text-zinc-400 dark:text-zinc-500">

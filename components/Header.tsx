@@ -43,7 +43,9 @@ export function Header({ user, breadcrumb }: HeaderProps) {
           {breadcrumb && (
             <>
               <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
-              <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">{breadcrumb}</span>
+              <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+                {breadcrumb}
+              </span>
             </>
           )}
         </div>
@@ -54,7 +56,9 @@ export function Header({ user, breadcrumb }: HeaderProps) {
 
           {user && (
             <>
-              <span className="text-sm text-zinc-500 dark:text-zinc-400 hidden lg:inline">{user.email}</span>
+              <span className="text-sm text-zinc-500 dark:text-zinc-400 hidden lg:inline">
+                {user.email}
+              </span>
               <button
                 onClick={handleLogout}
                 className="px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition"

@@ -34,7 +34,9 @@ export function StatusBarChart({ pendiente, enProgreso, entregado, labels }: Cha
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
-      <h3 className="text-base font-semibold mb-4">{labels.pending} / {labels.inProgress} / {labels.delivered}</h3>
+      <h3 className="text-base font-semibold mb-4">
+        {labels.pending} / {labels.inProgress} / {labels.delivered}
+      </h3>
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} opacity={0.3} />

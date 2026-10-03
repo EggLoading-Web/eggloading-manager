@@ -23,19 +23,13 @@ export const metadata: Metadata = {
   description: 'CRM para gestionar clientes y proyectos',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${inter.variable} ${poppins.variable}`}>
       <body className="min-h-screen bg-stone-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
         <ThemeProvider>
           <I18nProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
+            <ToastProvider>{children}</ToastProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>
