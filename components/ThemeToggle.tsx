@@ -9,11 +9,11 @@ export function ThemeToggle() {
     <button
       onClick={toggleTheme}
       aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
-      className="w-9 h-9 flex items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition"
+      className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition touch-manipulation shrink-0"
     >
       {theme === 'light' ? (
         <svg
-          className="w-4 h-4 text-zinc-700"
+          className="w-5 h-5 text-zinc-700"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -25,7 +25,7 @@ export function ThemeToggle() {
         </svg>
       ) : (
         <svg
-          className="w-4 h-4 text-zinc-200"
+          className="w-5 h-5 text-zinc-200"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

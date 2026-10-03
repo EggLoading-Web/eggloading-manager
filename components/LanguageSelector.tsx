@@ -19,17 +19,16 @@ export function LanguageSelector() {
   const { lang, setLang } = useI18n()
 
   return (
-    <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
+    <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5 shrink-0">
       {(Object.keys(FLAGS) as Lang[]).map((code) => (
         <button
           key={code}
+          type="button"
           onClick={() => setLang(code)}
           title={LABELS[code]}
           aria-label={LABELS[code]}
-          className={`px-2 py-1 text-base rounded-md transition ${
-            lang === code
-              ? 'bg-white dark:bg-zinc-700 shadow-sm'
-              : 'hover:bg-white/50 dark:hover:bg-zinc-700/50 opacity-60 hover:opacity-100'
+          className={`w-9 h-9 flex items-center justify-center text-base rounded-md transition touch-manipulation ${
+            lang === code ? 'bg-white dark:bg-zinc-700 shadow-sm' : 'opacity-50 hover:opacity-100'
           }`}
         >
           {FLAGS[code]}

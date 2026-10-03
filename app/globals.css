@@ -32,3 +32,13 @@ h3 {
   font-family: var(--font-poppins), system-ui, sans-serif;
   letter-spacing: -0.02em;
 }
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
