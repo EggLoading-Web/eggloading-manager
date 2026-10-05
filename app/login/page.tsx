@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import { useToast } from '@/lib/toast'
 import { LanguageSelector } from '@/components/LanguageSelector'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { FormField, inputBaseClass, inputErrorClass } from '@/components/FormField'
@@ -19,15 +20,31 @@ type FormErrors = {
   password?: string
 }
 
+const DEMO_EMAIL = 'demo@eggloading.com'
+const DEMO_PASSWORD = 'demo1234'
+
 export default function LoginPage() {
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const { toast } = useToast()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const [error, setError] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
+
+  const demoText = {
+    es: { button: 'Probar demo', loading: 'Entrando...', note: 'Sin registro · datos de ejemplo' },
+    en: { button: 'Try demo', loading: 'Entering...', note: 'No signup · sample data' },
+    it: {
+      button: 'Prova demo',
+      loading: 'Accesso...',
+      note: 'Senza registrazione · dati di esempio',
+    },
+  }
+  const d = demoText[lang as keyof typeof demoText] ?? demoText.es
 
   function traducirError(code: string): string {
     return t(code as any) ?? code
@@ -66,6 +83,26 @@ export default function LoginPage() {
     router.refresh()
   }
 
+  async function handleDemoLogin() {
+    setError('')
+    setErrors({})
+    setDemoLoading(true)
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: DEMO_EMAIL,
+      password: DEMO_PASSWORD,
+    })
+
+    if (error) {
+      toast(error.message, 'error')
+      setDemoLoading(false)
+      return
+    }
+
+    router.push('/dashboard')
+    router.refresh()
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50 dark:bg-zinc-950">
       <div className="w-full max-w-md">
@@ -83,6 +120,22 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold">
               {mode === 'login' ? t('loginTitle') : t('registerTitle')}
             </h1>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={demoLoading}
+            className="w-full py-2.5 mb-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-lg font-medium transition shadow-sm"
+          >
+            {demoLoading ? d.loading : `🚀 ${d.button}`}
+          </button>
+          <p className="text-center text-xs text-zinc-400 dark:text-zinc-500 mb-5">{d.note}</p>
+
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800" />
+            <span className="text-xs text-zinc-400 dark:text-zinc-500">o</span>
+            <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
