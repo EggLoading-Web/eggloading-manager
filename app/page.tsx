@@ -52,7 +52,11 @@ export default function LandingPage() {
       ctaLogin: 'Sign in',
       features: [
         { icon: '👥', title: 'Clients', desc: 'All your client info in one place.' },
-        { icon: '📁', title: 'Projects', desc: 'Track status: pending, in progress, delivered.' },
+        {
+          icon: '📁',
+          title: 'Projects',
+          desc: 'Track status: pending, in progress, delivered.',
+        },
         { icon: '📝', title: 'Notes', desc: 'Take notes on every project.' },
         { icon: '📊', title: 'Dashboard', desc: 'Clear metrics of your activity.' },
         { icon: '🔍', title: 'Search', desc: 'Find what you need instantly.' },
@@ -89,35 +93,36 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-zinc-950">
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2.5 group">
+      {/* Header */}
+      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 sm:py-4 flex justify-between items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 shrink-0 group">
             <Image
               src="/logo.jpg"
               alt="Egg Loading"
-              width={36}
-              height={36}
-              className="rounded-lg"
+              width={32}
+              height={32}
+              className="rounded-lg w-8 h-8 sm:w-9 sm:h-9"
             />
-            <span className="font-bold text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+            <span className="font-bold text-base sm:text-lg hidden sm:inline group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
               Egg Loading
             </span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <ThemeToggle />
             <LanguageSelector />
             {user ? (
               <Link
                 href="/dashboard"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition"
+                className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap"
               >
                 {c.ctaDashboard}
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition"
+                className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap"
               >
                 {c.ctaLogin}
               </Link>
@@ -126,17 +131,18 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section className="max-w-5xl mx-auto px-6 py-16 md:py-24">
+      {/* Hero */}
+      <section className="max-w-5xl mx-auto px-6 py-12 sm:py-16 md:py-24">
         <div className="text-center max-w-3xl mx-auto">
           <span className="inline-block px-3 py-1 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-400 rounded-full text-xs font-medium mb-6">
             {c.badge}
           </span>
 
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold leading-tight mb-6">
             {c.title1} <span className="text-blue-600 dark:text-blue-400">{c.titleAccent}</span>
           </h1>
 
-          <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
+          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
             {c.subtitle}
           </p>
 
@@ -149,6 +155,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Features */}
       <section className="max-w-5xl mx-auto px-6 py-16 border-t border-zinc-200 dark:border-zinc-800">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {c.features.map((f, i) => (
@@ -164,6 +171,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="border-t border-zinc-200 dark:border-zinc-800 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
         {c.footer}
       </footer>
